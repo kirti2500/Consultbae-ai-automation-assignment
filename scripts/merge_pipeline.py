@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 import pandas as pd
 
 
@@ -33,6 +34,26 @@ def normalize_city(raw):
     return city_map.get(cleaned, str(raw).strip().title())
 
 
+def normalize_ctc(raw):
+    if pd.isna(raw):
+        return None
+    val = float(raw)
+    return round(val * 100000) if val < 100 else round(val)
+
+
+def parse_messy_date(raw):
+    if pd.isna(raw):
+        return None
+    raw = str(raw).strip()
+    formats = ["%d-%m-%Y", "%Y-%m-%d", "%d %b %Y", "%m/%d/%Y"]
+    for fmt in formats:
+        try:
+            return datetime.strptime(raw, fmt).strftime("%Y-%m-%d")
+        except ValueError:
+            continue
+    return None
+
+
 if __name__ == "__main__":
     test_numbers = ["9000000254", "+919000000254", "09000000254", "919000000268", "+91-9000000131"]
     for x in test_numbers:
@@ -45,3 +66,11 @@ if __name__ == "__main__":
     test_cities = ["GURGAON", "gurugram ", "New Delhi", "Bangalore", "  Pune"]
     for x in test_cities:
         print(x, "->", normalize_city(x))
+
+    test_ctc = [417964, 4.2, 8.3, 11.2]
+    for x in test_ctc:
+        print(x, "->", normalize_ctc(x))
+
+    test_dates = ["24-07-2026", "2026-08-08", "7 Jul 2026", "07/13/2026"]
+    for x in test_dates:
+        print(x, "->", parse_messy_date(x))
